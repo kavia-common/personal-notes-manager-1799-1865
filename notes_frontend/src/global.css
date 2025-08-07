@@ -6,10 +6,14 @@
  */
 
 :root {
-  --primary-color: #000000;
-  --secondary-color: #333333;
-  --accent-color: #0078d4;
+  --primary-color: #1976d2;
+  --secondary-color: #424242;
+  --accent-color: #ffc107;
   --background-color: #ffffff;
+  --surface-color: #f6f8fa;
+  --border-color: #e3e5e8;
+  --danger-color: #eb5757;
+  --sidebar-width: 265px;
 }
 
 html {
