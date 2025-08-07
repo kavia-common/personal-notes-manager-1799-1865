@@ -60,9 +60,8 @@ export default component$(() => {
     }
   });
 
-  // For rendering the selected note
-  const selectedNote = () =>
-    notes.value.find((n) => n.id === selectedId.value) ?? null;
+  // For rendering the selected note, no longer closed over in $-closures
+  // (removed: selectedNote, it is no longer used)
 
   // Handlers for create/edit (must be QRLs if passed to child)
   const handleSave = $((title: string, content: string) => {
@@ -71,8 +70,9 @@ export default component$(() => {
       loadNotes({ forceAll: true });
       selectedId.value = note.id;
       creating.value = false;
-    } else if (editing.value && selectedNote()) {
-      NotesService.updateNote(selectedNote()!.id, title, content);
+    } else if (editing.value && selectedId.value) {
+      // Avoid close-over of selectedNote function!
+      NotesService.updateNote(selectedId.value, title, content);
       loadNotes({ forceAll: true });
       editing.value = false;
     }
@@ -128,24 +128,32 @@ export default component$(() => {
                 onCancel$={handleCancelCreate}
               />
             )}
-            {!creating.value && editing.value && selectedNote() && (
-              <NoteEditor
-                title={selectedNote()!.title}
-                content={selectedNote()!.content}
-                isNew={false}
-                onSave$={handleSave}
-                onCancel$={handleCancelEdit}
-              />
-            )}
-            {!creating.value && !editing.value && selectedNote() && (
-              <NoteViewer
-                title={selectedNote()!.title}
-                content={selectedNote()!.content}
-                lastUpdated={selectedNote()!.lastUpdated.split('T')[0]}
-                onEdit={handleEdit}
-              />
-            )}
-            {!creating.value && !editing.value && !selectedNote() && (
+            {!creating.value && editing.value && selectedId.value && (() => {
+              const note = notes.value.find((n) => n.id === selectedId.value);
+              return note ? (
+                <NoteEditor
+                  title={note.title}
+                  content={note.content}
+                  isNew={false}
+                  onSave$={handleSave}
+                  onCancel$={handleCancelEdit}
+                />
+              ) : null;
+            })()}
+
+            {!creating.value && !editing.value && selectedId.value && (() => {
+              const note = notes.value.find((n) => n.id === selectedId.value);
+              return note ? (
+                <NoteViewer
+                  title={note.title}
+                  content={note.content}
+                  lastUpdated={note.lastUpdated.split('T')[0]}
+                  onEdit={handleEdit}
+                />
+              ) : null;
+            })()}
+
+            {!creating.value && !editing.value && !selectedId.value && (
               <div class="note-empty">
                 <span>Select a note or create a new one to begin.</span>
               </div>
